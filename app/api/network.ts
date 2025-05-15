@@ -1,5 +1,5 @@
-import { Provider } from '@/components/api/http';
 import { authPlugin, loggerPlugin, responsePlugin } from '@/components/api/plugins';
+import { Provider } from '@/components/api/request';
 import { Article, Chapter, PageData, Project, Tool, WxArticle } from './types';
 import {
     articleListUrl,

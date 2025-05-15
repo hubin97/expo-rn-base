@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Plugin, RequestConfig, Response } from './http';
+import { Plugin, RequestConfig, Response } from './request';
 
 // 认证插件
 export const authPlugin: Plugin = {

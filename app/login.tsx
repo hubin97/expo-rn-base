@@ -1,4 +1,4 @@
-import { homeApi } from '@/app/api/request';
+import { homeApi } from '@/app/api/network';
 import type { Article } from '@/app/api/types';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
