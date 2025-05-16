@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Carousel } from "@ant-design/react-native";
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Image, ListRenderItem, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -72,8 +73,12 @@ export default function HomeScreen() {
       banners.length > 0 && banners.map(item => {
         return (
           <TouchableOpacity key={item.id} activeOpacity={0.7} onPress={() => {
-            console.log('item>>>', JSON.stringify(item));
-            //navigation.push('DetailPage', item)
+            // console.log('item>>>', JSON.stringify(item));
+            router.push({
+              pathname: '/public/webView',
+              //params: { title: item.title, url: item.url }
+              params: { url: item.url }
+            });
           }}>
             <Image style={{width: '100%', height: '100%'}} source={{uri: item.imagePath ?? ''}}/>
           </TouchableOpacity>
@@ -88,11 +93,11 @@ export default function HomeScreen() {
       <TouchableOpacity
       activeOpacity={0.7}
       onPress={() => {
-        console.log('item>>>', JSON.stringify(item));
-        /**
-         * {"adminAdd":false,"apkLink":"","audit":1,"author":"郭霖","canEdit":false,"chapterId":409,"chapterName":"郭霖","collect":false,"courseId":13,"desc":"","descMd":"","envelopePic":"","fresh":false,"host":"","id":26580,"isAdminAdd":false,"link":"https://mp.weixin.qq.com/s/Egt6kGqOQHeTvpxC3Q7jMA","niceDate":"2023-05-31 00:00","niceShareDate":"2023-05-31 23:17","origin":"","prefix":"","projectLink":"","publishTime":1685462400000,"realSuperChapterId":407,"selfVisible":0,"shareDate":1685546267000,"shareUser":"","superChapterId":408,"superChapterName":"公众号","tags":[{"name":"公众号","url":"/wxarticle/list/409/1"}],"title":"5分钟带你复刻蚂蚁基金业绩走势图","type":0,"userId":-1,"visible":1,"zan":0}
-         */
-        //navigation.push('DetailPage', item)
+        // console.log('item>>>', JSON.stringify(item));
+        router.push({
+          pathname: '/public/webView',
+          params: { title: item.title, url: item.link }
+        });
       }}>
       <ThemedView style={[styles.itemWrapper ]}>
         <IconSymbol size={14} name='chevron.right' color={ Colors[colorScheme ?? 'light'].text } style={{ marginRight: 15 }}/>
