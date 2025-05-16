@@ -1,6 +1,6 @@
 import { authPlugin, loggerPlugin, responsePlugin } from '@/components/api/plugins';
 import { Provider } from '@/components/api/request';
-import { Article, Chapter, PageData, Project, Tool, WxArticle } from './types';
+import { Article, Banner, Chapter, PageData, Project, Tool, WxArticle } from './types';
 import {
     articleListUrl,
     articleTopUrl,
@@ -31,14 +31,14 @@ const api = new Provider({
 // 首页相关接口
 export const homeApi = {
     // 获取轮播图
-    getBanner: () => api.get<Article[]>(bannerUrl),
+    getBanner: () => api.get<Banner[]>(bannerUrl),
     
     // 获取置顶文章
     getTopArticles: () => api.get<Article[]>(articleTopUrl),
     
-    // 获取文章列表
-    getArticleList: (page: number) => 
-        api.get<PageData<Article>>(`${articleListUrl}/${page}/json`)
+    // 获取文章列表 `注意页码从0开始, page_size 控制分页数量，取值为[1-40]`
+    getArticleList: (page: number, pageSize: number) => 
+        api.get<PageData<Article>>(`${articleListUrl}/${page}/json?page_size=${pageSize}`)
 };
 
 // 项目相关接口

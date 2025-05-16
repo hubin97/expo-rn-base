@@ -1,75 +1,203 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
+import { homeApi } from '@/app/api/network';
+import { Article, Banner } from '@/app/api/types';
+// import icon_next from "@/assets/images/next.png";
+import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from '@/components/ThemedView';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Carousel } from "@ant-design/react-native";
+import { useEffect, useState } from 'react';
+import { FlatList, Image, ListRenderItem, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+
+  const pageSize: number = 20;
+  const [page, setPage] = useState<number>(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [naviOpacity, setNaviOpacity] = useState(0);
+
+  useEffect(() => {
+    // 获取轮播图数据
+    const fetchBanner = async () => {
+      try {
+        const result = await homeApi.getBanner();
+          //console.log('获取轮播图数据成功:', result);
+          setBanners(result);
+      } catch (err) {
+        console.error('获取轮播图失败:', err instanceof Error ? err.message : err);
+      }
+    };
+
+    fetchBanner();
+  }, []);
+
+  useEffect(() => {
+    // 获取文章列表数据
+    const fetchArticleList = async () => {
+      try {
+        setRefreshing(true);
+        const result = await homeApi.getArticleList(page, pageSize);
+        // console.log('获取文章列表成功:', result);
+        if (page == 0) {
+          setArticles(result.datas)
+        } else {
+          let total = result.total
+          if (page * pageSize <= total) {
+            let datas = [...articles, ...result.datas]
+            setHasMoreData(true)
+            setArticles(datas)
+          } else {
+            setHasMoreData(false)
+          }
+        }
+      } catch (err) {
+        console.error('文章列表失败:', err instanceof Error ? err.message : err);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+    fetchArticleList()
+  }, [page]);
+
+  const _renderCarousel = (
+    <Carousel autoplay infinite style={styles.carousel} >
+      { 
+      banners.length > 0 && banners.map(item => {
+        return (
+          <TouchableOpacity key={item.id} activeOpacity={0.7} onPress={() => {
+            console.log('item>>>', JSON.stringify(item));
+            //navigation.push('DetailPage', item)
+          }}>
+            <Image style={{width: '100%', height: '100%'}} source={{uri: item.imagePath ?? ''}}/>
+          </TouchableOpacity>
+        );
+      }) 
+      }
+    </Carousel>
+  )
+
+  const _renderItem: ListRenderItem<Article>  = ({ item }) => {
+    return (
+      <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={() => {
+        console.log('item>>>', JSON.stringify(item));
+        /**
+         * {"adminAdd":false,"apkLink":"","audit":1,"author":"郭霖","canEdit":false,"chapterId":409,"chapterName":"郭霖","collect":false,"courseId":13,"desc":"","descMd":"","envelopePic":"","fresh":false,"host":"","id":26580,"isAdminAdd":false,"link":"https://mp.weixin.qq.com/s/Egt6kGqOQHeTvpxC3Q7jMA","niceDate":"2023-05-31 00:00","niceShareDate":"2023-05-31 23:17","origin":"","prefix":"","projectLink":"","publishTime":1685462400000,"realSuperChapterId":407,"selfVisible":0,"shareDate":1685546267000,"shareUser":"","superChapterId":408,"superChapterName":"公众号","tags":[{"name":"公众号","url":"/wxarticle/list/409/1"}],"title":"5分钟带你复刻蚂蚁基金业绩走势图","type":0,"userId":-1,"visible":1,"zan":0}
+         */
+        //navigation.push('DetailPage', item)
+      }}>
+      <ThemedView style={[styles.itemWrapper ]}>
+        <IconSymbol size={14} name='chevron.right' color={ Colors[colorScheme ?? 'light'].text } style={{ marginRight: 15 }}/>
+        <ThemedView style={styles.contentStyle}>
+          <ThemedText type='title' style={{ fontSize: 15 }}>{item.title}</ThemedText>
+          <ThemedView
+            style={styles.bottomStyle}>
+            <ThemedText type='default' style={{ fontSize: 12 }}>更新时间: {item.niceDate}</ThemedText>
+            <ThemedText type='default' style={{ fontSize: 12 }}>{ item.author && `作者: ${item.author}` }</ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+    </TouchableOpacity>
+    );
+  };
+
+  const _renderSeparator = () => (
+    <ThemedView style={{ height: 0.5, backgroundColor: Colors[colorScheme ?? 'light'].separator, marginLeft: 16 }} />
+  );
+
+  const _onScroll = (e: any) => {
+    let originY = e.nativeEvent.contentOffset.y;
+    // console.log('originY>>', originY);
+    if (originY <= 0) {
+      naviOpacity && setNaviOpacity(0)
+    } else if (originY <= 44) {
+      setNaviOpacity(originY/44)
+    } else if (originY > 44) {
+      naviOpacity < 1 && setNaviOpacity(1)
+    } 
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+    <ThemedView style={styles.container}> 
+      <ThemedView style={[ styles.naviWrapper, { height: insets.top + 44, borderBottomColor: Colors[colorScheme ?? 'light'].separator, opacity: naviOpacity }]}>
+        <ThemedView style={[ styles.naviItem, { marginTop: insets.top } ]}>
+            <ThemedText type='title' style={{ fontSize: 18 }} >{'首页'}</ThemedText>
+        </ThemedView>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
+      <FlatList
+        keyExtractor={(item: Article, index: number) => `${item.id}-${index}`} // ✅ 最好加上 index 保底
+        style={[styles.flatlist, { marginTop: insets.top }]}
+        data={articles}
+        renderItem={_renderItem}
+        initialNumToRender={10}
+        ListHeaderComponent={_renderCarousel}
+        ItemSeparatorComponent={_renderSeparator}
+        onScroll={_onScroll}
+        onEndReachedThreshold={0.5}
+        refreshing={refreshing}
+        onRefresh={() => {
+          setPage(0)
+        }}
+        onEndReached={() => {
+            if (hasMoreData) {
+              setPage(page+1)
+            }
+        }}
+      />
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+  },
+  naviWrapper: {
+    position: 'absolute', 
+    zIndex: 1000, 
+    width: '100%',  
+    borderBottomWidth: 0.5
+  },
+  naviItem: {
+    justifyContent: 'center', 
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  carousel: {
+    width: '100%',
+    height: 200,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  flatlist: {
+    flex: 1, 
+  },
+  itemWrapper: {
+    flexDirection: 'row-reverse', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    //borderBottomWidth: 0.5, 
+    minHeight: 60, 
+  },
+  nextStyle: {
+    width: 15, 
+    height: 15, 
+    marginRight: 15, 
+    opacity: 0.5
+  },
+  contentStyle: {
+    flex: 1, 
+    padding: 10, 
+  },
+  bottomStyle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
   },
 });

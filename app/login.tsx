@@ -1,7 +1,6 @@
-import { homeApi } from '@/app/api/network';
 import type { Article } from '@/app/api/types';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Button, StyleSheet, Text, View } from 'react-native';
 
 export default function Login() {
@@ -15,28 +14,8 @@ export default function Login() {
     setTimeout(() => {
       setLoading(false);
       router.replace('/(logged-in)/(tabs)');
-    }, 1000);
+    }, 500);
   };
-  
-  useEffect(() => {
-    // 获取轮播图数据
-    const fetchBanner = async () => {
-      try {
-        console.log('开始获取轮播图数据...');
-        const result = await homeApi.getBanner();
-        console.log('获取轮播图数据成功:', result);
-        if (Array.isArray(result)) {
-          setBannerData(result);
-        } else {
-          console.warn('轮播图数据格式不正确:', result);
-        }
-      } catch (err) {
-        console.error('获取轮播图失败:', err instanceof Error ? err.message : err);
-      }
-    };
-
-    fetchBanner();
-  }, []);
   
   return (
     <View style={styles.container}>
