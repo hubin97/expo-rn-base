@@ -1,6 +1,6 @@
 import { homeApi } from '@/app/api/network';
 import { Article, Banner } from '@/app/api/types';
-// import icon_next from "@/assets/images/next.png";
+import { Skeleton_Home } from '@/app/skeletons';
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -16,6 +16,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
   const [hasMoreData, setHasMoreData] = useState(true);
@@ -23,23 +24,26 @@ export default function HomeScreen() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [naviOpacity, setNaviOpacity] = useState(0);
 
-  useEffect(() => {
-    // 获取轮播图数据
-    const fetchBanner = async () => {
-      try {
-        const result = await homeApi.getBanner();
-          //console.log('获取轮播图数据成功:', result);
-          setBanners(result);
-      } catch (err) {
-        console.error('获取轮播图失败:', err instanceof Error ? err.message : err);
-      }
-    };
+  const pageSize: number = 20;
 
-    fetchBanner();
+  useEffect(() => {
+    setLoading(true)
+    Promise.all([homeApi.getBanner(), homeApi.getArticleList(0, pageSize)])
+    .then((results) => {
+      let banners = results[0]
+      let acticles = results[1].datas
+      setBanners(banners);
+      setArticles(acticles);
+    })
+    .catch((err) => {
+      console.error(err.message);
+    }).finally(() => {
+      setLoading(false)
+    })
   }, []);
 
   useEffect(() => {
-    const pageSize: number = 20;
+    if (page === 0) { return }
     // 获取文章列表数据
     const fetchArticleList = async () => {
       try {
@@ -128,6 +132,10 @@ export default function HomeScreen() {
     } else if (originY > 44) {
       naviOpacity < 1 && setNaviOpacity(1)
     } 
+  }
+
+  if (loading) {
+    return <Skeleton_Home />;
   }
 
   return (
