@@ -1,8 +1,10 @@
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useNavigation } from "expo-router/build/useNavigation";
 import React, { useLayoutEffect, useState } from "react";
-import { Dimensions, StyleSheet } from "react-native";
+import { Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { ThemedView } from "./ThemedView";
@@ -23,22 +25,31 @@ export default function WebViewScreen({ title, url }: Props) {
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
-
     navigation.setOptions({
         title: title,
         headerShown: true,
         headerStyle: {
-            backgroundColor: colors.background, //  设置背景色
+            backgroundColor: colors.background,
         },
-        headerBackTitleVisible: false,  //  隐藏返回按钮文字
-        headerTintColor: colors.text,   //  设置返回按钮颜色
+        headerBackVisible: false,
+        headerBackTitleVisible: false,
+        headerTintColor: colors.text,
         headerTitleStyle: {
             fontWeight: 'bold',
             fontSize: 18,
             textColor: colors.text,
         },
+        headerLeft: () => (
+            <Ionicons 
+              name="chevron-back" 
+              size={24} 
+              color={ colors.text }
+              style={{ marginLeft: 0 }}
+              onPress={() => router.back()}
+            />
+        ),
     });
-  }, [navigation, title]);
+  }, [navigation, title, colorScheme, colors]);
 
   const _renderProgressView = (
     progress < 1 && (
@@ -49,9 +60,9 @@ export default function WebViewScreen({ title, url }: Props) {
   );
 
   return (
-    <ThemedView style={[styles.containers, { marginBottom: - insets.bottom }]}>
+    <ThemedView style={{ flex: 1, backgroundColor: colors.background }}>
       { _renderProgressView }
-      <WebView style={{flex: 1}} source={{uri: url }} onLoadProgress={(e) => {
+      <WebView style={{ flex: 1 }} source={{ uri: url }} onLoadProgress={(e) => {
         //console.log('>>>', e.nativeEvent.progress);
         const progress = e.nativeEvent.progress;
         setProgress(progress)
@@ -59,10 +70,3 @@ export default function WebViewScreen({ title, url }: Props) {
     </ThemedView>
   );
 }
-
-export const styles = StyleSheet.create({
-    containers: {
-      flex: 1,
-      backgroundColor: '#fff',
-    },
-});

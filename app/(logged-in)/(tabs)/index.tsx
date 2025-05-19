@@ -16,7 +16,6 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
 
-  const pageSize: number = 20;
   const [page, setPage] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
   const [hasMoreData, setHasMoreData] = useState(true);
@@ -40,6 +39,7 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
+    const pageSize: number = 20;
     // 获取文章列表数据
     const fetchArticleList = async () => {
       try {
