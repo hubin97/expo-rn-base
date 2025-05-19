@@ -44,7 +44,7 @@ export const homeApi = {
 // 项目相关接口
 export const projectApi = {
     // 获取项目分类
-    getProjectTree: () => api.get<Chapter[]>(projectUrl),
+    getProjectTab: () => api.get<Chapter[]>(projectUrl),
     
     // 获取项目列表
     getProjectList: (page: number, cid: number) => 

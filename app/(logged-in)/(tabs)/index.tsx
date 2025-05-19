@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { decodeHtml } from '@/utils/string-utils';
 import { Carousel } from "@ant-design/react-native";
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -80,8 +81,7 @@ export default function HomeScreen() {
             // console.log('item>>>', JSON.stringify(item));
             router.push({
               pathname: '/public/webView',
-              //params: { title: item.title, url: item.url }
-              params: { url: item.url }
+              params: { title: decodeHtml(item.title), url: item.url }
             });
           }}>
             <Image style={{width: '100%', height: '100%'}} source={{uri: item.imagePath ?? ''}}/>
@@ -97,16 +97,16 @@ export default function HomeScreen() {
       <TouchableOpacity
       activeOpacity={0.7}
       onPress={() => {
-        // console.log('item>>>', JSON.stringify(item));
+        //console.log('item>>>', JSON.stringify(item));
         router.push({
           pathname: '/public/webView',
-          params: { title: item.title, url: item.link }
+          params: { title: decodeHtml(item.title), url: item.link }
         });
       }}>
       <ThemedView style={[styles.itemWrapper ]}>
         <IconSymbol size={14} name='chevron.right' color={ Colors[colorScheme ?? 'light'].text } style={{ marginRight: 15 }}/>
         <ThemedView style={styles.contentStyle}>
-          <ThemedText type='title' style={{ fontSize: 15 }}>{item.title}</ThemedText>
+          <ThemedText type='title' style={{ fontSize: 15 }}>{ decodeHtml(item.title) }</ThemedText>
           <ThemedView
             style={styles.bottomStyle}>
             <ThemedText type='default' style={{ fontSize: 12 }}>更新时间: {item.niceDate}</ThemedText>
