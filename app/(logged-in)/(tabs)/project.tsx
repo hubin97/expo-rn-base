@@ -19,6 +19,7 @@ export default function ProjectScreen() {
     const colors = Colors[useColorScheme() ?? 'light'];
 
     const [tabDatas, setTabDatas] = useState<TabItem[]>([]);
+    const [activeId, setActiveId] = useState<number>(0);
 
     useEffect(() => {
         projectApi.getProjectTab().then((chapters) => {            
@@ -28,6 +29,7 @@ export default function ProjectScreen() {
                 key: chapter.id.toString()
             }));
             setTabDatas(tabs);
+            setActiveId(chapters[0].id);
         });
     }, []);
 
@@ -53,6 +55,16 @@ export default function ProjectScreen() {
                 console.log(tabData);
             }}
         >
+            {
+                // 子页面容器
+                tabDatas.map((tab) => {
+                    return (
+                        <ThemedView key={tab.key} style={{ flex: 1}} >
+
+                        </ThemedView>
+                    )
+                })
+            }
         </Tabs>
     );
 

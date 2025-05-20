@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { ensureMinTime } from '@/utils/loading-utils';
 import { decodeHtml } from '@/utils/string-utils';
 import { Carousel } from "@ant-design/react-native";
 import { router } from 'expo-router';
@@ -27,49 +28,77 @@ export default function HomeScreen() {
 
   const pageSize: number = 20;
 
+  // 获取文章列表数据
+  const fetchArticleList = async (pageNum: number) => {
+    try {
+      const result = await homeApi.getArticleList(pageNum, pageSize);
+      if (pageNum === 0) {
+        setArticles(result.datas);
+      } else {
+        let total = result.total;
+        if (pageNum * pageSize <= total) {
+          let datas = [...articles, ...result.datas];
+          setHasMoreData(true);
+          setArticles(datas);
+        } else {
+          setHasMoreData(false);
+        }
+      }
+      return result;
+    } catch (err) {
+      console.error('文章列表失败:', err instanceof Error ? err.message : err);
+      throw err;
+    }
+  };
+
+  // 加载首页数据
+  const loadHomeData = async () => {
+    setLoading(true);
+    setRefreshing(true);
+    try {
+      const startTime = Date.now();
+      const [bannerResult, articleResult] = await Promise.all([
+        homeApi.getBanner(),
+        homeApi.getArticleList(0, pageSize)
+      ]);
+      setBanners(bannerResult);
+      setArticles(articleResult.datas);
+      await ensureMinTime(startTime);
+    } catch (err) {
+      console.error('加载失败:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // 初始加载
   useEffect(() => {
-    setLoading(true)
-    Promise.all([homeApi.getBanner(), homeApi.getArticleList(0, pageSize)])
-    .then((results) => {
-      let banners = results[0]
-      let acticles = results[1].datas
-      setBanners(banners);
-      setArticles(acticles);
-    })
-    .catch((err) => {
-      console.error(err.message);
-    }).finally(() => {
-      setLoading(false)
-    })
+    loadHomeData();
   }, []);
 
+  // 下拉刷新
+  const handleRefresh = () => {
+    setPage(0);
+    loadHomeData();
+  };
+
+  // 上拉加载更多
   useEffect(() => {
-    if (page === 0) { return }
-    // 获取文章列表数据
-    const fetchArticleList = async () => {
+    if (page === 0) { return; }
+    
+    const fetchData = async () => {
       try {
         setRefreshing(true);
-        const result = await homeApi.getArticleList(page, pageSize);
-        // console.log('获取文章列表成功:', result);
-        if (page == 0) {
-          setArticles(result.datas)
-        } else {
-          let total = result.total
-          if (page * pageSize <= total) {
-            let datas = [...articles, ...result.datas]
-            setHasMoreData(true)
-            setArticles(datas)
-          } else {
-            setHasMoreData(false)
-          }
-        }
+        await fetchArticleList(page);
       } catch (err) {
-        console.error('文章列表失败:', err instanceof Error ? err.message : err);
+        console.error('加载失败:', err);
       } finally {
         setRefreshing(false);
       }
     };
-    fetchArticleList()
+    
+    fetchData();
   }, [page]);
 
   const _renderCarousel = (
@@ -146,7 +175,7 @@ export default function HomeScreen() {
         </ThemedView>
       </ThemedView>
       <FlatList
-        keyExtractor={(item: Article, index: number) => `${item.id}-${index}`} // ✅ 最好加上 index 保底
+        keyExtractor={(item: Article, index: number) => `${item.id}-${index}`}
         style={[styles.flatlist, { marginTop: insets.top }]}
         data={articles}
         renderItem={_renderItem}
@@ -156,16 +185,14 @@ export default function HomeScreen() {
         onScroll={_onScroll}
         onEndReachedThreshold={0.5}
         refreshing={refreshing}
-        onRefresh={() => {
-          setPage(0)
-        }}
+        onRefresh={handleRefresh}
         onEndReached={() => {
-            if (hasMoreData) {
-              setPage(page+1)
-            }
+          if (hasMoreData) {
+            setPage(page + 1);
+          }
         }}
       />
-      </ThemedView>
+    </ThemedView>
   );
 }
 
