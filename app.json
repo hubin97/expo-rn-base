@@ -37,6 +37,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d5bc21fd-290d-438d-aa72-02f9c924d14d"
+      }
+    },
+    "owner": "hubin.h"
   }
 }
