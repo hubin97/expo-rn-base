@@ -1,9 +1,11 @@
 /**
  * 解码 HTML 实体
- * @param text 包含 HTML 实体的文本
+ * @param html 包含 HTML 实体的文本
  * @returns 解码后的文本
  */
-export function decodeHtml(text: string): string {
+export function decodeHtml(html: string | undefined | null): string {
+    if (!html) return '';
+    
     const entities: { [key: string]: string } = {
         // 基本符号
         '&amp;': '&',
@@ -46,5 +48,6 @@ export function decodeHtml(text: string): string {
         '&middot;': '·',
         '&nbsp;': ' '
     };
-    return text.replace(/&[^;]+;/g, entity => entities[entity] || entity);
+    
+    return html.replace(/&[^;]+;/g, entity => entities[entity] || entity);
 } 

@@ -59,14 +59,28 @@ export interface Tag {
 // 项目相关类型
 export interface Project {
   id: number;
+  title: string;           // 标题
+  desc: string;            // 描述
+  link: string;            // 文章链接
+  projectLink: string;     // 项目链接
+  envelopePic: string;     // 封面图
+  author: string;          // 作者
+  chapterId: number;       // 章节ID
+  chapterName: string;     // 章节名称
+  superChapterId: number;  // 父章节ID
+  superChapterName: string;// 父章节名称
+  publishTime: number;     // 发布时间
+  niceDate: string;        // 格式化后的时间
+  collect: boolean;        // 是否收藏
+  fresh: boolean;          // 是否新文章
+  zan: number;            // 点赞数
+  visible: number;        // 是否可见
+  tags: ProjectTag[];     // 标签
+}
+
+export interface ProjectTag {
   name: string;
-  desc: string;
-  link: string;
-  icon: string;
-  order: number;
-  visible: number;
-  parentChapterId: number;
-  userControlSetTop: boolean;
+  url: string;
 }
 
 // 章节相关类型

@@ -1,4 +1,6 @@
 import { projectApi } from '@/app/api/network';
+import { Project } from '@/app/api/types';
+import { TabChildList } from '@/app/components/TabChildList';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -22,24 +24,23 @@ export default function ProjectScreen() {
     const [activeId, setActiveId] = useState<number>(0);
 
     useEffect(() => {
-        projectApi.getProjectTab().then((chapters) => {            
-            // 将 Chapter 类型映射为 Tabs 需要的格式，并解码 HTML 实体
+        projectApi.getProjectTab().then((chapters) => {
             const tabs = chapters.map(chapter => ({
                 title: decodeHtml(chapter.name),
                 key: chapter.id.toString()
             }));
             setTabDatas(tabs);
-            setActiveId(chapters[0].id);
+            if (chapters.length > 0) {
+                setActiveId(chapters[0].id);
+            }
         });
     }, []);
 
     const _renderTabs = (
-        <Tabs 
-            style={{ height: 44 }} 
-            tabBarBackgroundColor={ colors.background }
-            // 这个底部边线设置真是难找; 
+        <Tabs
+            style={{ height: 44 }}
+            tabBarBackgroundColor={colors.background}
             styles={{
-                // 注意: 因为`tabBarPosition默认是上`, 所以这里是`topTabBarSplitLine`属性
                 topTabBarSplitLine: {
                     borderBottomWidth: 0.5,
                     borderBottomColor: colors.separator
@@ -49,18 +50,23 @@ export default function ProjectScreen() {
             tabs={tabDatas}
             initialPage={0}
             renderTab={(tabData) => (
-               <ThemedText style={{ marginHorizontal: 10, fontWeight: 500, fontSize: 17 }}>{tabData.title}</ThemedText> 
+                <ThemedText style={{ marginHorizontal: 10, fontWeight: 500, fontSize: 17 }}>{tabData.title}</ThemedText>
             )}
             onChange={(tabData) => {
-                console.log(tabData);
+                if (tabData.key) {
+                    setActiveId(parseInt(tabData.key));
+                }
             }}
         >
             {
-                // 子页面容器
                 tabDatas.map((tab) => {
                     return (
-                        <ThemedView key={tab.key} style={{ flex: 1}} >
-
+                        <ThemedView key={tab.key} style={{ flex: 1 }}>
+                            <TabChildList<Project> 
+                                tabId={parseInt(tab.key)} 
+                                networkApi={projectApi.getProjectList}
+                                marginBottom={insets.bottom + 49 + 44}
+                            />
                         </ThemedView>
                     )
                 })
